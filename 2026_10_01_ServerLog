@@ -1,0 +1,195 @@
+2026-10-01 00:31:05.971302 [info]: Host: 127.0.0.1:9006
+2026-10-01 16:31:06.068512 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+2026-10-01 00:31:06.118855 [info]: GET / HTTP/1.1
+2026-10-01 00:31:06.332167 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+
+2026-10-01 16:31:06.883943 [info]: close fd 20
+2026-10-01 00:31:07.193406 [info]: GET / HTTP/1.1
+2026-10-01 00:31:07.269583 [info]: deal with the client(127.0.0.1)
+2026-10-01 16:31:07.348014 [info]: 
+2026-10-01 00:31:07.493714 [info]: Host: 127.0.0.1:9006
+2026-10-01 16:31:07.603353 [info]: GET / HTTP/1.1
+2026-10-01 16:31:07.699127 [info]: Host: 127.0.0.1:9006
+2026-10-01 16:31:07.950601 [info]: request:HTTP/1.1 200 OK
+
+2026-10-01 16:31:08.217188 [info]: adjust timer once
+2026-10-01 16:31:08.549751 [info]: 
+2026-10-01 16:31:08.637013 [info]: deal with the client(127.0.0.1)
+2026-10-02 00:31:08.637161 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+2026-10-01 16:31:08.925797 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+2026-10-01 16:31:09.136842 [info]: adjust timer once
+2026-10-01 00:31:09.224845 [info]: 
+2026-10-01 16:31:09.411691 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+
+2026-10-01 00:31:09.466124 [info]: deal with the client(127.0.0.1)
+2026-10-01 00:31:09.873024 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+
+2026-10-01 16:31:10.288032 [info]: Host: 127.0.0.1:9006
+2026-10-01 16:31:10.620562 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+2026-10-01 16:31:10.644605 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+
+2026-10-01 00:31:10.692934 [info]: GET / HTTP/1.1
+2026-10-01 16:31:10.739573 [info]: GET / HTTP/1.1
+2026-10-01 00:31:10.920120 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+
+2026-10-01 00:31:11.309337 [info]: GET / HTTP/1.1
+2026-10-01 00:31:11.329962 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+
+2026-10-01 16:31:11.425791 [info]: GET / HTTP/1.1
+2026-10-01 16:31:12.026929 [info]: 
+2026-10-01 00:31:12.220132 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+
+2026-10-01 00:31:12.362992 [info]: adjust timer once
+2026-10-01 16:31:12.413383 [info]: request:HTTP/1.1 200 OK
+
+2026-10-01 00:31:12.782454 [info]: 
+2026-10-02 00:31:12.782474 [info]: close fd 17
+2026-10-01 00:31:12.889616 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+
+2026-10-01 00:31:12.966041 [info]: GET / HTTP/1.1
+2026-10-01 16:31:13.164555 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+
+2026-10-01 00:31:13.185896 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+
+2026-10-01 16:31:13.186796 [info]: adjust timer once
+2026-10-01 16:31:13.416195 [info]: Host: 127.0.0.1:9006
+2026-10-01 16:31:13.614257 [info]: GET / HTTP/1.1
+2026-10-01 00:31:13.620709 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+
+2026-10-01 00:31:13.697624 [info]: request:HTTP/1.1 200 OK
+
+2026-10-01 16:31:13.778989 [info]: close fd 18
+2026-10-01 16:31:13.974632 [info]: deal with the client(127.0.0.1)
+2026-10-01 16:31:14.135623 [info]: GET / HTTP/1.1
+2026-10-01 16:31:14.502856 [info]: GET / HTTP/1.1
+2026-10-01 16:31:15.301059 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+
+2026-10-01 16:31:15.375912 [info]: deal with the client(127.0.0.1)
+2026-10-01 00:31:15.382609 [info]: Host: 127.0.0.1:9006
+2026-10-01 00:31:15.695080 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+
+2026-10-02 00:31:15.723038 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+
+2026-10-02 00:31:15.722976 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+
+2026-10-01 00:31:15.722943 [info]: deal with the client(127.0.0.1)
+2026-10-01 16:31:15.843185 [info]: adjust timer once
+2026-10-01 16:31:16.601050 [info]: Host: 127.0.0.1:9006
+2026-10-01 16:31:16.860942 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+2026-10-01 16:31:17.061721 [info]: request:HTTP/1.1 200 OK
+
+2026-10-01 16:31:17.300456 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+2026-10-01 16:31:17.451367 [info]: close fd 20
+2026-10-01 00:31:17.987917 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+
+2026-10-01 00:31:18.066435 [info]: Host: 127.0.0.1:9006
+2026-10-01 16:31:18.267552 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+2026-10-01 16:31:18.450737 [info]: GET / HTTP/1.1
+2026-10-01 00:31:19.554393 [info]: adjust timer once
+2026-10-01 16:31:20.106593 [info]: GET / HTTP/1.1
+2026-10-01 00:31:20.292723 [info]: deal with the client(127.0.0.1)
+2026-10-01 00:31:20.732232 [info]: adjust timer once
+2026-10-01 00:31:20.855160 [info]: Host: 127.0.0.1:9006
+2026-10-01 16:31:20.939750 [info]: deal with the client(127.0.0.1)
+2026-10-01 16:31:21.072824 [info]: close fd 16
+2026-10-01 00:31:21.094467 [info]: request:HTTP/1.1 200 OK
+
+2026-10-01 16:31:21.244185 [info]: adjust timer once
+2026-10-01 00:31:21.274871 [info]: adjust timer once
+2026-10-02 00:31:21.274979 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+
+2026-10-01 00:31:21.296768 [info]: adjust timer once
+2026-10-01 00:31:21.535873 [info]: 
+2026-10-01 00:31:21.827401 [info]: 
+2026-10-01 16:31:22.054762 [info]: deal with the client(127.0.0.1)
+2026-10-01 00:31:22.839863 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+
+2026-10-01 16:31:22.934070 [info]: deal with the client(127.0.0.1)
+2026-10-02 00:31:22.934096 [info]: request:HTTP/1.1 200 OK
+
+2026-10-01 16:31:23.119874 [info]: close fd 19
+2026-10-01 16:31:23.687692 [info]: GET / HTTP/1.1
+2026-10-01 16:31:24.300280 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+
+2026-10-02 00:31:24.300372 [info]: close fd 18
+2026-10-01 16:31:24.544377 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+
+2026-10-02 00:31:24.544573 [info]: GET / HTTP/1.1
+2026-10-01 16:31:24.570284 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+2026-10-01 16:31:24.751209 [info]: adjust timer once
+2026-10-02 00:31:24.751293 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+
+2026-10-01 16:31:24.829645 [info]: close fd 3
+2026-10-01 16:31:25.020970 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+Connection:close
+
+2026-10-01 16:31:25.040716 [info]: deal with the client(127.0.0.1)
+2026-10-01 16:31:25.258768 [info]: request:HTTP/1.1 200 OK
+Content-Length:612
+
