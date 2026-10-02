@@ -42,12 +42,6 @@ bool http_conn::initmysql_result(connection_pool *connPool)
         return false;
     }
 
-    //返回结果集中的列数
-    int num_fields = mysql_num_fields(result);
-
-    //返回所有字段结构的数组
-    MYSQL_FIELD *fields = mysql_fetch_fields(result);
-
     //从结果集中获取下一行，将对应的用户名和密码，存入map中
     while (MYSQL_ROW row = mysql_fetch_row(result))
     {
@@ -410,9 +404,6 @@ http_conn::HTTP_CODE http_conn::do_request()
     if (cgi == 1 && (*(p + 1) == '2' || *(p + 1) == '3'))
     {
 
-        //根据标志判断是登录检测还是注册检测
-        char flag = m_url[1];
-
         char *m_url_real = (char *)malloc(sizeof(char) * 200);
         strcpy(m_url_real, "/");
         strcat(m_url_real, m_url + 2);
@@ -563,7 +554,7 @@ bool http_conn::write()
 
         bytes_have_send += temp;
         bytes_to_send -= temp;
-        if (bytes_have_send >= m_iv[0].iov_len)
+        if ((size_t)bytes_have_send >= m_iv[0].iov_len) // iov_len 为 size_t，显式统一符号
         {
             m_iv[0].iov_len = 0;
             m_iv[1].iov_base = m_file_address + (bytes_have_send - m_write_idx);
@@ -688,6 +679,8 @@ bool http_conn::process_write(HTTP_CODE ret)
             add_headers(strlen(ok_string));
             if (!add_content(ok_string))
                 return false;
+            break; // 空文件走公共尾部（只发写缓冲）——原版此处置空落入 default: return false，
+                   // body 已构造好却按 INTERNAL_ERROR 处理，200 变 500 语义矛盾
         }
     }
     default:

@@ -42,6 +42,10 @@ public:
 
     //并发模型选择
     int actor_model;
+
+    //数据库主机（默认 localhost——注意 libmysqlclient 对 localhost 走 Unix socket 而非 TCP，
+    // 跨机/容器部署时需显式指定，例如 -H 127.0.0.1 强制 TCP）
+    string DB_HOST;
 };
 
 #endif

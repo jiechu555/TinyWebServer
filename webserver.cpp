@@ -29,10 +29,11 @@ WebServer::~WebServer()
     free(m_root); // 构造中 malloc 的资源根路径，原先漏配对（valgrind definitely lost 30B）
 }
 
-void WebServer::init(int port, string user, string passWord, string databaseName, int log_write, 
+void WebServer::init(int port, string host, string user, string passWord, string databaseName, int log_write,
                      int opt_linger, int trigmode, int sql_num, int thread_num, int close_log, int actor_model)
 {
     m_port = port;
+    m_host = host;
     m_user = user;
     m_passWord = passWord;
     m_databaseName = databaseName;
@@ -89,7 +90,7 @@ void WebServer::sql_pool()
 {
     //初始化数据库连接池
     m_connPool = connection_pool::GetInstance();
-    m_connPool->init("localhost", m_user, m_passWord, m_databaseName, 3306, m_sql_num, m_close_log);
+    m_connPool->init(m_host, m_user, m_passWord, m_databaseName, 3306, m_sql_num, m_close_log);
 
     //初始化数据库读取表——fail-fast：启动期 user 表不可读属于部署错误，
     //带病运行会让登录/注册静默失效（users 缓存为空），不如退出并给出明确日志
@@ -140,8 +141,7 @@ void WebServer::eventListen()
 
     utils.init(TIMESLOT);
 
-    //epoll创建内核事件表
-    epoll_event events[MAX_EVENT_NUMBER];
+    //epoll创建内核事件表（局部未用的 events 数组已删——它遮蔽成员且白占 10000 项栈空间）
     m_epollfd = epoll_create(5);
     assert(m_epollfd != -1);
 
@@ -250,7 +250,6 @@ bool WebServer::dealclientdata()
 bool WebServer::dealwithsignal(bool &timeout, bool &stop_server)
 {
     int ret = 0;
-    int sig;
     char signals[1024];
     ret = recv(m_pipefd[0], signals, sizeof(signals), 0);
     if (ret == -1)

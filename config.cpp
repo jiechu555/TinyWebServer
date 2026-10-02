@@ -30,11 +30,14 @@ Config::Config(){
 
     //并发模型,默认是proactor
     actor_model = 0;
+
+    //数据库主机,默认 localhost（走 Unix socket）；-H 127.0.0.1 可强制 TCP
+    DB_HOST = "localhost";
 }
 
 void Config::parse_arg(int argc, char*argv[]){
     int opt;
-    const char *str = "p:l:m:o:s:t:c:a:";
+    const char *str = "p:l:m:o:s:t:c:a:H:";
     while ((opt = getopt(argc, argv, str)) != -1)
     {
         switch (opt)
@@ -77,6 +80,11 @@ void Config::parse_arg(int argc, char*argv[]){
         case 'a':
         {
             actor_model = atoi(optarg);
+            break;
+        }
+        case 'H':
+        {
+            DB_HOST = optarg;
             break;
         }
         default:

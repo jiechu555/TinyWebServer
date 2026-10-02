@@ -25,7 +25,7 @@ public:
     WebServer();
     ~WebServer();
 
-    void init(int port , string user, string passWord, string databaseName,
+    void init(int port, string host, string user, string passWord, string databaseName,
               int log_write , int opt_linger, int trigmode, int sql_num,
               int thread_num, int close_log, int actor_model);
 
@@ -57,6 +57,7 @@ public:
 
     //数据库相关
     connection_pool *m_connPool;
+    string m_host;         //数据库主机（localhost 走 Unix socket，IP 走 TCP——libmysqlclient 语义）
     string m_user;         //登陆数据库用户名
     string m_passWord;     //登陆数据库密码
     string m_databaseName; //使用数据库名
