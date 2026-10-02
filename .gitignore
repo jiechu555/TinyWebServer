@@ -3,3 +3,4 @@ server
 *_ServerLog*
 valgrind.log
 server_stdout.log
+build/
