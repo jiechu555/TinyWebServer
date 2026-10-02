@@ -82,7 +82,10 @@ public:
     {
         return &m_address;
     }
-    void initmysql_result(connection_pool *connPool);
+    // 初始化用户表缓存：失败返回 false（查询出错/结果集为 NULL），由调用方决策——
+    // 不再吞错误继续跑，NULL 结果集下传 mysql_num_fields 会段错误（基线实测启动即崩）。
+    // static：只读写全局 users 缓存，不依赖任何实例状态
+    static bool initmysql_result(connection_pool *connPool);
     int timer_flag;
     int improv;
 

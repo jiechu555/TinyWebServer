@@ -142,11 +142,12 @@ Demo演示
     // 建立yourdb库
     create database yourdb;
 
-    // 创建user表
+    // 创建user表（username 为主键；MySQL 8 要求主键列 NOT NULL）
     USE yourdb;
     CREATE TABLE user(
-        username char(50) NULL,
-        passwd char(50) NULL
+        username char(50) NOT NULL,
+        passwd char(50) NULL,
+        PRIMARY KEY(username)
     )ENGINE=InnoDB;
 
     // 添加数据

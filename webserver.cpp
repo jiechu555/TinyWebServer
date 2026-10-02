@@ -90,8 +90,13 @@ void WebServer::sql_pool()
     m_connPool = connection_pool::GetInstance();
     m_connPool->init("localhost", m_user, m_passWord, m_databaseName, 3306, m_sql_num, m_close_log);
 
-    //初始化数据库读取表
-    users->initmysql_result(m_connPool);
+    //初始化数据库读取表——fail-fast：启动期 user 表不可读属于部署错误，
+    //带病运行会让登录/注册静默失效（users 缓存为空），不如退出并给出明确日志
+    if (!http_conn::initmysql_result(m_connPool))
+    {
+        LOG_ERROR("initmysql_result failed: user table unreadable, exit\n");
+        exit(1);
+    }
 }
 
 void WebServer::thread_pool()
