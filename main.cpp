@@ -34,8 +34,12 @@ int main(int argc, char *argv[])
     //监听
     server.eventListen();
 
-    //运行
+    //运行（SIGTERM 优雅退出后返回）
     server.eventLoop();
+
+    // 退出清理：mysql client 库的全局状态（字符集缓存等 ~200KB/900+ blocks）
+    // 只能由 mysql_library_end 释放——连接池为局部静态单例，main 返回时自动析构关闭连接
+    mysql_library_end();
 
     return 0;
 }

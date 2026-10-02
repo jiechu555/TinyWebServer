@@ -26,6 +26,7 @@ WebServer::~WebServer()
     delete[] users;
     delete[] users_timer;
     delete m_pool;
+    free(m_root); // 构造中 malloc 的资源根路径，原先漏配对（valgrind definitely lost 30B）
 }
 
 void WebServer::init(int port, string user, string passWord, string databaseName, int log_write, 

@@ -55,6 +55,9 @@ bool http_conn::initmysql_result(connection_pool *connPool)
         string temp2(row[1]);
         users[temp1] = temp2;
     }
+
+    // 结果集必须显式释放：原版漏掉，整棵行数据树泄漏（valgrind 152B direct + 1496B indirect）
+    mysql_free_result(result);
     return true;
 }
 

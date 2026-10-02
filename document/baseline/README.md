@@ -24,14 +24,19 @@ P99 高达秒级 + 1000 连接下 64 次 timeout：高并发下有请求长时�
 
 ## valgrind 内存体检（10 个请求）
 
-| 指标 | 值 |
-|---|---|
-| 堆分配/释放 | 7052 allocs / **6104 frees**（948 次未配对） |
-| definitely lost | 182 B / 2 blocks（WebServer 构造 new、mysql_server_init） |
-| possibly lost | 56 B+ |
-| ERROR SUMMARY | 5 errors |
+| 指标 | 治理前 | **commit 3 治理后** |
+|---|---|---|
+| 堆分配/释放 | 7052 allocs / 6104 frees（**948 次未配对**） | 7020 / 7010（**10 次，全部第三方库全局状态**） |
+| definitely lost | 182 B / 2 blocks | **0** |
+| indirectly lost | 1496 B / 18 blocks | **0** |
+| still reachable | ~212 KB / 919 blocks | 2056 B / 2 blocks |
+| ERROR SUMMARY | 5 errors | 2 errors（均为库内部） |
 
-仅 10 请求即失衡 948 次——每连接的 http_conn 对象、定时器节点、日志缓冲是治理对象。大规模并发后泄漏规模将进一步放大。
+**治理三刀**（commit 3）：① `~WebServer` 补 `free(m_root)`（构造 malloc 漏配对）；② `initmysql_result` 补 `mysql_free_result`（原版结果集整树泄漏 1648B）；③ `main` 退出前 `mysql_library_end()`（mysql client 全局状态 ~200KB/900+ blocks，`mysql_close` 不会释放它）。
+
+**重要发现**：基线的 948 次未配对里，绝大多数是 `kill -INT`（原版未注册 SIGINT）直接杀进程导致析构链未执行——用 SIGTERM 走优雅退出后，WebServer 栈对象的析构（users/users_timer/m_pool）本来就配对。真正的 bug 是上述三处。
+
+**剩余 2 项的取舍说明**（面试可讲）：56B = libcrypto 全局锁、2000B = Log 单例缓冲。前者无应用层释放 API；后者的安全释放需要异步日志线程 join 机制，收益 2KB 不值得复杂化——均为进程生命周期持有，非泄漏。8 blocks possibly lost 为动态链接器内部。
 
 ## 编译警告（g++ 15 -std=gnu++17 默认）
 
