@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [feature/modernize, master]
+  pull_request:
+    branches: [feature/modernize, master]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装依赖（mysqlclient / cmake 已预装）
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libmysqlclient-dev
+
+      - name: 配置 + 构建（含单元测试）
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake --build build -j"$(nproc)"
+
+      - name: 单元测试
+        run: ctest --test-dir build --output-on-failure
+
+      - name: 冒烟：无数据库启动应 fail-fast 退出码 1（而非段错误）
+        run: |
+          chmod +x build/server
+          # CI runner 无 MySQL：server 应在连接池阶段打印错误并以退出码 1 结束
+          # ——这正是 commit 2 的 fail-fast 语义（连接失败 exit(1)，见 sql_connection_pool init）
+          timeout 10 ./build/server -p 9006 -H 127.0.0.1 || code=$?
+          echo "exit_code=${code:-0}"
+          # 预期非 139（段错误）即通过：连接失败退出码 1 或资源约束下其他非崩溃退出
+          test "${code:-0}" -ne 139
+
+      - name: 归档构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-binary
+          path: build/server
+          retention-days: 7

@@ -176,8 +176,12 @@ public:
         m_mutex.lock();
         if (m_size <= 0)
         {
-            t.tv_sec = now.tv_sec + ms_timeout / 1000;
-            t.tv_nsec = (ms_timeout % 1000) * 1000;
+            // 绝对超时时刻 = now + ms_timeout。原版两个叠加 bug（均由空队超时单测抓出）：
+            // ① tv_nsec 毫秒换算 ×10^3 差三个数量级；② 丢弃 now.tv_usec——当 usec 已过
+            // 超时毫秒数时目标时刻落在过去，pthread_cond_timedwait 立即 ETIMEDOUT
+            long total_us = now.tv_usec + (ms_timeout % 1000) * 1000L;
+            t.tv_sec = now.tv_sec + ms_timeout / 1000 + total_us / 1000000L;
+            t.tv_nsec = (total_us % 1000000L) * 1000L;
             if (!m_cond.timewait(m_mutex.get(), t))
             {
                 m_mutex.unlock();
