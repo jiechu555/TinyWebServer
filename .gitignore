@@ -1,5 +1,5 @@
 server
 *.log
-*_ServerLog
+*_ServerLog*
 valgrind.log
 server_stdout.log
