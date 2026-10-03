@@ -208,6 +208,63 @@ term_block([
 ], "终端")
 body("SIGTERM 走注册的信号处理 → 析构链完整执行（users/users_timer/线程池）。这是 commit 3 内存治理验证过的路径：valgrind definitely lost 182B→0。")
 
+# ============ 原理图解 ============
+heading("原理图解 · 一次请求的一生（Proactor 模式）", size=14)
+term_block([
+    ("主线程（事件循环，epoll LT + Proactor）", BLUE),
+    ("  listen fd 可读 → accept → conn fd 注册进 epoll + 挂上定时器", "D4D4D4"),
+    ("  conn fd 可读 → 主线程自己 read 进输入缓冲 → 把任务丢线程池", "D4D4D4"),
+    ("      ↓【线程池工作线程】", GRAY),
+    ("      do_read：解析请求行/头部 → 路由（静态文件 or CGI）", "D4D4D4"),
+    ("      CGI 分支：connectionRAII 从连接池取 MySQL 连接 → 注册/登录 SQL", "D4D4D4"),
+    ("      do_write：按状态机写响应（大文件用 writev 零拷贝）", "D4D4D4"),
+    ("      ↓ 写完通知主线程", GRAY),
+    ("  SIGALRM 每 5s → 定时器升序链表 tick → 关闭超时连接", "D4D4D4"),
+    ("  （步骤 5 压测里大量 write 错误 = 这一步主动关空闲连接，是特性不是 bug）", GRAY),
+], title="事件流")
+body("关键取舍（面试常问）：主线程统一收发、工作线程只做逻辑——I/O 集中在一个人手里，竞争少；代价是主线程成为吞吐上限。经典 Reactor 变体（工作线程各自 epoll）实测 -25%，所以原版默认反而是对的（见下表）。", size=9.5)
+
+# ============ 历史实测 ============
+heading("历史实测数据（二开 6 个 commit 的核心数字）", size=14)
+tbl = doc.add_table(rows=6, cols=2)
+tbl.style = "Table Grid"
+rows = [
+    ("实测项（commit / 报告可查）", "结果"),
+    ("基线 → 日志分级 flush（commit 4）", "QPS 6437→8511（+12%），P50 21→8.8ms（-58%），timeout -62%"),
+    ("负结果对照（单一变量，commit 4）", "异步日志 -27%；全 ET -11% 且超时×3；Reactor -25% —— 原版默认就是最优解"),
+    ("valgrind 内存治理（commit 3）", "definitely lost 182B→0；未配对 948→10（剩余全为第三方库全局态）"),
+    ("编译警告治理（commit 5）", "-Wall -Wextra 警告 37→0；其中藏一个真 bug（空文件分支 200/500 语义矛盾）"),
+    ("单测抓出的原版真 bug（commit 6）", "block_queue 超时双重错：tv_nsec 毫秒换算差 1000 倍 + gettimeofday 丢 tv_usec 致「伪超时」"),
+]
+for i, (a, b) in enumerate(rows):
+    c0, c1 = tbl.rows[i].cells
+    c0.text, c1.text = a, b
+    for c in (c0, c1):
+        for pp in c.paragraphs:
+            for rr in pp.runs:
+                rr.font.size = Pt(9)
+                rr.font.name = "Microsoft YaHei"
+                rr._element.rPr.rFonts.set(qn("w:eastAsia"), "Microsoft YaHei")
+    if i == 0:
+        set_cell_bg(c0, "1A2636"); set_cell_bg(c1, "1A2636")
+        for pp in c0.paragraphs + c1.paragraphs:
+            for rr in pp.runs:
+                rr.font.color.rgb = RGBColor.from_string("FFFFFF")
+doc.add_paragraph().paragraph_format.space_after = Pt(2)
+body("方法论亮点（比数字更值钱）：性能归因先做环境对照——同环境 Python http.server 也 1.71s 长尾，证明 P99 是 WSL2 调度噪声不是代码缺陷。", size=9.5, color="5F6B7A")
+
+# ============ 面试五问 ============
+heading("面试五问（面试官视角，答题要点）", size=14)
+for q, a in [
+    ("Q1 Proactor 和 Reactor 区别？", "谁是 I/O 的执行者：Reactor 通知你「可读了」由用户线程读；Proactor 由主线程代读完毕把数据递给工作线程。本项目是主线程收发+线程池处理逻辑的混合体。"),
+    ("Q2 LT 和 ET 选哪个？", "默认 LT：不丢事件、编程简单；实测切全 ET -11% 且超时×3——用数据回答为什么不是「显得高级」的 ET。"),
+    ("Q3 为什么同步日志反而比异步快？", "异步版阻塞队列的锁 + string 分配开销超过直接 fwrite（分级后 INFO 以下走缓冲）；量级没到异步收益区——先测再选。"),
+    ("Q4 定时器为什么升序链表？", "超时最近的无非链表头，tick 只碰头部；新连接按超时时刻插入——牺牲插入 O(n) 换 tick O(1)，Web 场景 tick 频繁而插入少。"),
+    ("Q5 单测怎么抓出真 bug 的？", "探针二分：裸条件变量精确 100ms → 锁定 block_queue 时刻计算 → 发现换算差千倍+时刻丢弃两个错。讲清排查路径比背结论值钱。"),
+]:
+    body(q, color="1A2636", size=10)
+    body("要点：" + a, size=9.5, color="5F6B7A")
+
 # ============ 故障表 ============
 heading("常见故障速查表")
 tbl = doc.add_table(rows=6, cols=2)
