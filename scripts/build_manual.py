@@ -35,9 +35,11 @@ def heading(text, size=15, color="1A2636", space_before=14):
     return p
 
 
-def body(text, size=10.5, color="2C3E50"):
+def body(text, size=10.5, color="2C3E50", keep=False):
     p = doc.add_paragraph()
     p.paragraph_format.space_after = Pt(4)
+    if keep:
+        p.paragraph_format.keep_with_next = True
     r = p.add_run(text)
     r.font.size = Pt(size)
     r.font.color.rgb = RGBColor.from_string(color)
@@ -177,6 +179,24 @@ for i, (a, b) in enumerate(rows):
                 rr.font.color.rgb = RGBColor.from_string("FFFFFF")
 doc.add_paragraph().paragraph_format.space_after = Pt(2)
 
+# ============ 目录速览 ============
+heading("项目目录速览 · 每个文件是干什么的", size=13, space_before=10)
+term_block([
+    ("TinyWebServer/  （C++ Linux 高并发服务器）", BLUE),
+    ("├─ main.cpp          ← 入口：解析 -p 端口参数，调 server.init(数据库配置...)", "D4D4D4"),
+    ("├─ webserver.cpp/.h  ← 事件循环主战场：epoll 监听/信号管道/定时器tick（原理图解主角）", "D4D4D4"),
+    ("├─ http/", GRAY),
+    ("│   ├─ http_conn.cpp ← 单个连接的完整生命周期：读→解析→路由→CGI→写（精读主角）", "D4D4D4"),
+    ("│   └─ http_conn.h   ← 每连接的读/写缓冲区、状态机成员", "D4D4D4"),
+    ("├─ threadpool/       ← 线程池模板：主线程收任务、工作线程处理业务", "D4D4D4"),
+    ("├─ timer/            ← 升序链表定时器：超时连接的生死簿", "D4D4D4"),
+    ("├─ log/              ← 同步/异步日志（分级 flush 是 commit 4 性能主战场）", "D4D4D4"),
+    ("├─ CGImysql/         ← 数据库连接池（RAII 取还）", "D4D4D4"),
+    ("├─ root/             ← 静态资源：网页/图片/视频（服务器的『磁盘文档根』）", "D4D4D4"),
+    ("├─ tests/            ← gtest 单测（10 用例，抓出过原版真 bug）", "D4D4D4"),
+    ("└─ scripts/          ← run.sh/bench.sh 等固化脚本（WSL 会话纪律都在里面）", "D4D4D4"),
+], title="目录树")
+
 # ============ 步骤 1 ============
 heading("步骤 1 · 进入 WSL 与仓库")
 body("Windows 终端里进入 WSL Ubuntu，检查仓库状态（开发主场在 WSL 家目录，不是 /mnt/c）：")
@@ -303,6 +323,28 @@ term_block([
 ], title="事件流")
 body("关键取舍（面试常问）：主线程统一收发、工作线程只做逻辑——I/O 集中在一个人手里，竞争少；代价是主线程成为吞吐上限。经典 Reactor 变体（工作线程各自 epoll）实测 -25%，所以原版默认反而是对的（见下表）。", size=9.5)
 
+# ============ 代码精读 ============
+heading("代码精读 · 那个「藏了坑」的请求解析段", size=14)
+term_block([
+    ("// http_conn.cpp · POST 表单解析（注册/登录）", GRAY),
+    ("char name[100], password[100];", "D4D4D4"),
+    ("for (i = 5; m_string[i] != '&'; ++i)          // 跳过 \"user=\" 5 个字符", YELLOW),
+    ("    name[i - 5] = m_string[i];", "D4D4D4"),
+    ("for (i = i + 10; m_string[i] != '\\0'; ++i, ++j)  // 跳过 \"&password=\" 10 个字符", YELLOW),
+    ("    password[j] = m_string[i];", "D4D4D4"),
+], title="http_conn.cpp · 表单解析")
+body("这段代码是「上游设计」活教材：按字符数硬编码跳位——&password= 恰好 10 个字符。你用 curl 发 user=x&passwd=x（passwd 8 字符）会怎样？密码头两个字母被吃掉（本手册实测存成了 mo123）！它不是 bug 而是契约：服务器只接受浏览器表单的精确格式。面试聊这段能讲三层：①硬编码解析快但脆弱；②协议设计要显式文档化（HTML 的 form 才是真理源头）；③现代框架用 URL 解析库而不是数指针。", size=9.5)
+body("另一个精读点——block_queue 的「伪超时」双 bug（单测抓出来的原版真错误）：", size=10)
+term_block([
+    ("// 原版错误 1：毫秒→纳秒换算", GRAY),
+    ("ts.tv_nsec = ms * 1000;        // ✗ 差三个数量级！应为 ms * 1000000（1ms=10⁶ns）", RED),
+    ("// 原版错误 2：绝对时刻丢弃了微秒", GRAY),
+    ("ts.tv_sec = now.tv_sec + ms/1000;   // ✗ now.tv_usec 直接丢掉，目标时刻最多提前 1 秒", RED),
+    ("// 后果：超时等待实际远短于预期 → 队列明明有数据却报超时 → 「伪超时」", RED),
+    ("// 修法：时钟取整到下一毫秒边界 + 纳秒进位（详见 tests/ 的超时用例）", GREEN),
+], title="block_queue · 已修复的双 bug")
+body("为什么潜伏多年没人发现？超时路径只有「队列空且超过时限」才走到——常规测试永远不触发。单测直接构造「空队列+恰好超时」的边界场景，一测就现形。这就是「边界值用例设计」的价值。", size=9.5)
+
 # ============ 历史实测 ============
 heading("历史实测数据（二开 6 个 commit 的核心数字）", size=14)
 tbl = doc.add_table(rows=6, cols=2)
@@ -341,7 +383,7 @@ for q, a in [
     ("Q4 定时器为什么升序链表？", "超时最近的无非链表头，tick 只碰头部；新连接按超时时刻插入——牺牲插入 O(n) 换 tick O(1)，Web 场景 tick 频繁而插入少。"),
     ("Q5 单测怎么抓出真 bug 的？", "探针二分：裸条件变量精确 100ms → 锁定 block_queue 时刻计算 → 发现换算差千倍+时刻丢弃两个错。讲清排查路径比背结论值钱。"),
 ]:
-    body(q, color="1A2636", size=10)
+    body(q, color="1A2636", size=10, keep=True)
     body("要点：" + a, size=9.5, color="5F6B7A")
 
 # ============ 故障表 ============
@@ -370,6 +412,45 @@ for i, (a, b) in enumerate(rows):
         for pp in c0.paragraphs + c1.paragraphs:
             for rr in pp.runs:
                 rr.font.color.rgb = RGBColor.from_string("FFFFFF")
+
+# ============ 术语表 ============
+heading("术语表 · 面试口语必备", size=13, space_before=10)
+tbl = doc.add_table(rows=12, cols=2)
+tbl.style = "Table Grid"
+rows = [
+    ("术语", "一句话解释"),
+    ("epoll", "Linux 多路复用器：一个线程监听成百上千个 fd 的就绪事件（select 的继任者）"),
+    ("LT / ET", "水平触发（没处理完反复通知）/ 边缘触发（只通知一次，必须一次读完）"),
+    ("Reactor / Proactor", "事件分发模式两流派：Reactor 通知你可读、你自己读；Proactor 代你读完给你数据"),
+    ("fd 文件描述符", "file descriptor：Linux 里一切 I/O 资源（socket/文件/管道）的统一句柄"),
+    ("信号 Signal", "内核/进程间的异步通知（SIGTERM 请求退出/SIGKILL 强杀/SIGINT Ctrl+C）"),
+    ("原子操作 Atomic", "执行期间不可被打断的最小单位（Redis 单线程/Lua 脚本天然原子）"),
+    ("竞态条件 Race Condition", "结果依赖执行时序的 bug 温床：查-判-改 三步间被插队"),
+    ("CGI", "Common Gateway Interface：Web 服务器把动态请求交给程序的古老标准"),
+    ("RAII", "Resource Acquisition Is Initialization：资源获取即初始化，析构自动释放（连接池取还的写法）"),
+    ("valgrind", "内存检测工具：配对追踪 malloc/free，报告泄漏与未定义行为"),
+    ("零拷贝 writev", "把多个缓冲区一次系统调用写出，减少内核/用户态来回拷贝"),
+]
+for i, (a, b) in enumerate(rows):
+    tr2 = tbl.rows[i]._tr
+    trPr2 = tr2.get_or_add_trPr()
+    cs2 = OxmlElement("w:cantSplit")
+    trPr2.append(cs2)
+    c0, c1 = tbl.rows[i].cells
+    c0.text, c1.text = a, b
+    for c in (c0, c1):
+        for pp in c.paragraphs:
+            pp.paragraph_format.keep_with_next = (i == 0)
+            for rr in pp.runs:
+                rr.font.size = Pt(9)
+                rr.font.name = "Microsoft YaHei"
+                rr._element.rPr.rFonts.set(qn("w:eastAsia"), "Microsoft YaHei")
+    if i == 0:
+        set_cell_bg(c0, "1A2636"); set_cell_bg(c1, "1A2636")
+        for pp in c0.paragraphs + c1.paragraphs:
+            for rr in pp.runs:
+                rr.font.color.rgb = RGBColor.from_string("FFFFFF")
+doc.add_paragraph().paragraph_format.space_after = Pt(2)
 
 # ============ 自测题 ============
 heading("复现自测题（答出来说明你真懂了）")
