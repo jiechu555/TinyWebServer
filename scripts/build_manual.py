@@ -452,6 +452,53 @@ for i, (a, b) in enumerate(rows):
                 rr.font.color.rgb = RGBColor.from_string("FFFFFF")
 doc.add_paragraph().paragraph_format.space_after = Pt(2)
 
+# ============ 动手练习 ============
+heading("动手练习 · 读十遍不如做一遍（每个都有验证标准）", size=13, space_before=10)
+for t, d, v in [
+    ("练习 1 · 换端口启动（3 分钟）",
+     "启动命令里的 -p 9006 改成 -p 9007，再用 curl 打 http://127.0.0.1:9007/。",
+     "验证：首页 200。再回头 curl 9006——连接拒绝。理解：端口是启动参数不是编译进二进制的，同一份 server 可多实例（只要端口和资源不冲突）。"),
+    ("练习 2 · 改静态资源即时生效（5 分钟）",
+     "编辑 root/ 下的任意 html（比如注册页标题），保存后 curl 该页面。",
+     "验证：内容立即是新标题——服务器每次请求都读盘（有内容的文件句柄缓存，但改动能被读到）。和 Python/FastAPI 的静态目录行为一致，跨语言验证「静态资源不重启」规律。"),
+    ("练习 3 · 压测参数感知（10 分钟）",
+     "运行 wrk -t2 -c50 -d3s http://127.0.0.1:9006/，记下 QPS；再跑 -t4 -c100 -d3s 对比。",
+     "验证：并发更高时 QPS 变化不大甚至下降、延迟上升——单机吞吐有天花板，这是「加机器之前先测拐点」的第一手体感（对应 commit 4 的阶梯压测方法论）。"),
+]:
+    body(t, color="1A2636", size=10, keep=True)
+    body("做法：" + d, size=9.5)
+    body(v, size=9.5, color="5F6B7A")
+
+# ============ 简历对照 ============
+heading("简历对照 · 简历上的每句话在本手册哪里", size=13, space_before=10)
+tbl = doc.add_table(rows=6, cols=2)
+tbl.style = "Table Grid"
+rows = [
+    ("简历句子（项目三）", "证据位置"),
+    ("「修复三处源码缺陷（含单元测试抓出的超时双重 bug）」", "代码精读 block_queue 双 bug 段 + 步骤 3"),
+    ("「日志分级优化：QPS +12%、P50 -58%」", "历史实测数据表第 1 行"),
+    ("「-Wall -Wextra 警告 37→0」", "历史实测数据表第 4 行"),
+    ("「valgrind definitely lost 182B→0」", "历史实测数据表第 3 行 + 步骤 6 的优雅退出解释"),
+    ("「CMake+gtest+CI，10 用例全绿」", "步骤 2/3 的构建与测试 + GitHub Actions"),
+]
+for i, (a, b) in enumerate(rows):
+    c0, c1 = tbl.rows[i].cells
+    c0.text, c1.text = a, b
+    for c in (c0, c1):
+        for pp in c.paragraphs:
+            pp.paragraph_format.keep_with_next = (i == 0)
+            for rr in pp.runs:
+                rr.font.size = Pt(9)
+                rr.font.name = "Microsoft YaHei"
+                rr._element.rPr.rFonts.set(qn("w:eastAsia"), "Microsoft YaHei")
+    if i == 0:
+        set_cell_bg(c0, "1A2636"); set_cell_bg(c1, "1A2636")
+        for pp in c0.paragraphs + c1.paragraphs:
+            for rr in pp.runs:
+                rr.font.color.rgb = RGBColor.from_string("FFFFFF")
+doc.add_paragraph().paragraph_format.space_after = Pt(2)
+body("用法：面试前一晚只看右列。这个项目的杀手锏是「负结果对照」——主动讲异步日志/全ET/Reactor 三个更差的尝试（历史实测表第 2 行），证明你的优化是测出来的不是抄来的。", size=9, color="0B57D0")
+
 # ============ 自测题 ============
 heading("复现自测题（答出来说明你真懂了）")
 body("① socat 桥解决什么矛盾？（提示：libmysqlclient 对 localhost 的连接方式 vs MySQL 容器在哪）")
